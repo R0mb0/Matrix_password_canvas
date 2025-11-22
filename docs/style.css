@@ -26,6 +26,7 @@
     --grid-bg: #eef2f6;
     --cell-border: #cfd8e0;
     --cell-bg: #ffffff;
+    --cell-hover: #2563eb;
     --danger: #dc2626;
   }
 }
@@ -47,6 +48,7 @@
     --grid-bg: #1a2229;
     --cell-border: #364652;
     --cell-bg: #1f272e;
+    --cell-hover: #3b82f6;
     --danger: #ef4444;
   }
 }
@@ -326,15 +328,16 @@ input[type="number"]:focus {
   line-height: 1;
   user-select: none;
   font-size: 0.78rem;
-  min-width: var(--cell-size);
   width: var(--cell-size);
   height: var(--cell-size);
+  min-width: var(--cell-size);
+  aspect-ratio: 1 / 1;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 
 .cell:hover {
-  background: var(--accent);
+  background: var(--cell-hover);
   color: #fff;
 }
 

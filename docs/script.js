@@ -8,11 +8,11 @@ const MAX_SAFE_CELLS = 200_000;
 function buildPool(opts) {
   let pool = "";
   if (opts.letters) {
-    let uc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let lc = "abcdefghijklmnopqrstuvwxyz";
-    if (opts.uppercase) pool += uc;
-    if (opts.lowercase) pool += lc;
-    if (!opts.uppercase && !opts.lowercase) pool += uc + lc; // fallback
+    const UC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const LC = "abcdefghijklmnopqrstuvwxyz";
+    if (opts.uppercase) pool += UC;
+    if (opts.lowercase) pool += LC;
+    if (!opts.uppercase && !opts.lowercase) pool += UC + LC; // fallback
   }
   if (opts.numbers) pool += "0123456789";
   if (opts.specials) pool += SPECIAL_CHARS;
@@ -30,16 +30,22 @@ function computeCellSize(cols) {
   return 14;
 }
 
-// ==== Grid Construction ====
+// Apply grid layout + size
+function applyGridLayout(gridEl, cols) {
+  const size = computeCellSize(cols);
+  gridEl.style.setProperty("--cell-size", size + "px");
+  gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+}
+
+// ==== Grid Construction (temporary scramble) ====
 function createGrid(rows, cols, container) {
-  container.style.setProperty("--cell-size", computeCellSize(cols) + "px");
-  container.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+  applyGridLayout(container, cols);
   const cells = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const cell = document.createElement("div");
       cell.className = "cell";
-      cell.textContent = "•"; // placeholder
+      cell.textContent = "•"; // placeholder during scramble
       cell.dataset.row = r;
       cell.dataset.col = c;
       cells.push(cell);
@@ -49,10 +55,10 @@ function createGrid(rows, cols, container) {
   return cells;
 }
 
-// ==== Generation (final) ====
+// ==== Finalization ====
 function finalizeGrid(rows, cols, pool, cells) {
   const pLen = pool.length;
-  const lines = Array(rows).fill("").map(() => "");
+  const lines = Array(rows).fill("");
   let idx = 0;
   for (let r = 0; r < rows; r++) {
     let line = "";
@@ -68,14 +74,13 @@ function finalizeGrid(rows, cols, pool, cells) {
 }
 
 // ==== Animation Scramble ====
-function animateGrid(rows, cols, pool, cells, doneCallback) {
+function animateGrid(rows, cols, pool, cells, done) {
   const pLen = pool.length;
   let start = performance.now();
   let lastTick = 0;
 
   function tick(now) {
     if (now - lastTick >= TICK_INTERVAL_MS) {
-      // scramble frame
       for (let i = 0; i < cells.length; i++) {
         cells[i].textContent = pool[Math.floor(Math.random() * pLen)];
       }
@@ -83,7 +88,7 @@ function animateGrid(rows, cols, pool, cells, doneCallback) {
     }
     if (now - start >= ANIMATION_DURATION_MS) {
       const finalMatrix = finalizeGrid(rows, cols, pool, cells);
-      doneCallback(finalMatrix);
+      done(finalMatrix);
       return;
     }
     requestAnimationFrame(tick);
@@ -91,7 +96,7 @@ function animateGrid(rows, cols, pool, cells, doneCallback) {
   requestAnimationFrame(tick);
 }
 
-// ==== Matrix Block Creation ====
+// ==== Matrix Block (final) ====
 function createMatrixBlock(rows, cols, pool, matrixText, index) {
   const wrapper = document.createElement("article");
   wrapper.className = "matrix-wrapper";
@@ -141,7 +146,10 @@ function createMatrixBlock(rows, cols, pool, matrixText, index) {
   grid.className = "matrix-grid";
   scroll.appendChild(grid);
 
-  // Fill grid cells with final matrix text
+  // APPLY GRID LAYOUT HERE (fix principale)
+  applyGridLayout(grid, cols);
+
+  // Riempie la griglia con il contenuto finale
   const lines = matrixText.split("\n");
   for (let r = 0; r < rows; r++) {
     const line = lines[r];
@@ -159,18 +167,16 @@ function createMatrixBlock(rows, cols, pool, matrixText, index) {
   return wrapper;
 }
 
-// ==== Temporary (Scramble) Block ====
+// ==== Temporary Block (scramble) ====
 function createTempBlock(rows, cols, pool) {
   const wrapper = document.createElement("article");
   wrapper.className = "matrix-wrapper";
 
   const header = document.createElement("div");
   header.className = "matrix-header";
-
   const title = document.createElement("h2");
   title.className = "matrix-title";
   title.innerHTML = `Matrix <span class="badge">#?</span>`;
-
   header.appendChild(title);
   wrapper.appendChild(header);
 
@@ -193,7 +199,6 @@ function createTempBlock(rows, cols, pool) {
   scroll.appendChild(grid);
   wrapper.appendChild(scroll);
 
-  // Create cells once for animation
   const cells = createGrid(rows, cols, grid);
   return { wrapper, cells };
 }
@@ -251,7 +256,6 @@ document.addEventListener("DOMContentLoaded", () => {
       resetBtn.classList.remove("hidden");
     }
 
-    // Temporary scramble block
     const { wrapper: tempWrapper, cells } = createTempBlock(rows, cols, pool);
     outputArea.insertBefore(tempWrapper, outputArea.firstChild);
 
@@ -260,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const finalBlock = createMatrixBlock(rows, cols, pool, finalMatrix, 0);
       outputArea.insertBefore(finalBlock, outputArea.firstChild);
 
-      // Update badge numbering
+      // Aggiorna numerazione badge
       const blocks = [...outputArea.querySelectorAll(".matrix-wrapper")];
       blocks.forEach((blk, idx) => {
         const badge = blk.querySelector(".badge");
