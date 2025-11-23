@@ -9,6 +9,14 @@
 
 Generate animated random character matrices tailored to your chosen character pool (letters, numbers, specials, case rules). Use positional memorization: keep the printed grid, remember only where your password lives inside it.
 
+<div align="center">
+
+## [👉 Click here to test the page! 👈](https://r0mb0.github.io/Matrix_password_canvas/)
+
+[![example 1](https://github.com/R0mb0/Matrix_password_canvas/blob/main/Readme_images/example1.png?raw=true)](](https://r0mb0.github.io/Matrix_password_canvas/))
+
+</div>
+
 ---
 
 ## ✨ Features
