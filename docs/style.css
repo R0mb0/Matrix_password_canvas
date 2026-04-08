@@ -61,6 +61,7 @@ body {
   background: linear-gradient(140deg,var(--bg-alt),var(--bg));
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  padding-bottom: 120px;
 }
 
 .app {
